@@ -14,6 +14,7 @@ from homeassistant.const import (
     UnitOfEnergy,
     UnitOfPower,
     UnitOfTemperature,
+    PERCENTAGE,
 )
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -89,6 +90,48 @@ PANEL_PROPERTIES = {
 }
 
 SUMMARY_PROPERTIES = {
+    "grid_import": {
+        "name": "Grid Import",
+        "native_unit_of_measurement": UnitOfEnergy.KILO_WATT_HOUR,
+        "device_class": SensorDeviceClass.ENERGY,
+        "state_class": SensorStateClass.TOTAL_INCREASING,
+        "attr_icon": "mdi:transmission-tower-import",
+    },
+    "grid_export": {
+        "name": "Grid Export",
+        "native_unit_of_measurement": UnitOfEnergy.KILO_WATT_HOUR,
+        "device_class": SensorDeviceClass.ENERGY,
+        "state_class": SensorStateClass.TOTAL_INCREASING,
+        "attr_icon": "mdi:transmission-tower-export",
+    },
+    "battery_charge": {
+        "name": "Battery Charge",
+        "native_unit_of_measurement": UnitOfEnergy.KILO_WATT_HOUR,
+        "device_class": SensorDeviceClass.ENERGY,
+        "state_class": SensorStateClass.TOTAL_INCREASING,
+        "attr_icon": "mdi:battery-arrow-up",
+    },
+    "battery_discharge": {
+        "name": "Battery Discharge",
+        "native_unit_of_measurement": UnitOfEnergy.KILO_WATT_HOUR,
+        "device_class": SensorDeviceClass.ENERGY,
+        "state_class": SensorStateClass.TOTAL_INCREASING,
+        "attr_icon": "mdi:battery-arrow-down",
+    },
+    "solar_energy": {
+        "name": "Solar Energy",
+        "native_unit_of_measurement": UnitOfEnergy.KILO_WATT_HOUR,
+        "device_class": SensorDeviceClass.ENERGY,
+        "state_class": SensorStateClass.TOTAL_INCREASING,
+        "attr_icon": "mdi:solar-power-variant-outline",
+    },
+    "home_energy": {
+        "name": "Home Energy",
+        "native_unit_of_measurement": UnitOfEnergy.KILO_WATT_HOUR,
+        "device_class": SensorDeviceClass.ENERGY,
+        "state_class": SensorStateClass.TOTAL_INCREASING,
+        "attr_icon": "mdi:home-lightning-bolt-outline",
+    },
     "now": {
         "name": "Current Production",
         "native_unit_of_measurement": UnitOfPower.WATT,
@@ -131,6 +174,41 @@ SUMMARY_PROPERTIES = {
         "state_class": SensorStateClass.TOTAL_INCREASING,
         "attr_icon": "mdi:solar-power-variant-outline",
     },
+    "solarPower" : {
+        "name": "Real time solar power",
+        "native_unit_of_measurement": UnitOfPower.WATT,
+        "device_class": None,
+        "state_class": SensorStateClass.MEASUREMENT,
+        "attr_icon": "mdi:solar-power-variant-outline",
+    },
+    "batteryPower" : {
+        "name": "Real time battery power",
+        "native_unit_of_measurement": UnitOfPower.WATT,
+        "device_class": None,
+        "state_class": SensorStateClass.MEASUREMENT,
+        "attr_icon": "mdi:home-battery-outline",
+    },
+    "homePower" : {
+        "name": "Real time home power",
+        "native_unit_of_measurement": UnitOfPower.WATT,
+        "device_class": None,
+        "state_class": SensorStateClass.MEASUREMENT,
+        "attr_icon": "mdi:home-lightning-bolt-outline",
+    },
+    "networkPower" : {
+        "name": "Real time network power",
+        "native_unit_of_measurement": None,
+        "device_class": None,
+        "state_class": SensorStateClass.MEASUREMENT,
+        "attr_icon": "mdi:transmission-tower",
+    },
+    "batteryPercentage" : {
+        "name": "Real time battery percentage",
+        "native_unit_of_measurement": PERCENTAGE,
+        "device_class": None,
+        "state_class": SensorStateClass.MEASUREMENT,
+        "attr_icon": "mdi:home-lightning-bolt-outline",
+    }
 }
 
 
