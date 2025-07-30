@@ -100,7 +100,7 @@ class CookieCache:
         return self._cookie
 
 
-class TigoData:        
+class TigoData:
     def _init_energy_accumulators(self):
         self._energy_accumulators = {
             "solar_energy": 0.0,
@@ -112,14 +112,10 @@ class TigoData:
         }
         self._last_update = None
 
-    def _integrate_energy(self, key, power):
-        from datetime import datetime
-        now = datetime.now()
+    def _integrate_energy(self, key, power, now):
         if self._last_update is not None:
             elapsed = (now - self._last_update).total_seconds() / 3600.0 
-            # power in W, energy in kWh
-            self._energy_accumulators[key] += (power * elapsed) / 1000.0
-        self._last_update = now
+            self._energy_accumulators[key] += (power * elapsed)
 
     """Manages the cookie / auth bearer and also returns the system."""
 
@@ -146,6 +142,7 @@ class TigoData:
         """Get the data from the web api."""
         authHeader = await self._cookieCahe.getAuthHeader()
         cookieJar = self._cookieCahe.getCookieJar()
+        now = datetime.now()
         async with aiohttp.ClientSession(cookie_jar=cookieJar) as session:
             date = datetime.today().date()
             query = f"/api/v4/system/summary/aggenergy?system_id={self._systemId}&date={date}"
@@ -192,28 +189,32 @@ class TigoData:
                 if sensor_request.status == 200:
                     sensor_val = await sensor_request.json()
                     objectTypeIds = sensor_val.get("objectTypeIds", {})
-                    self._data["gridPower"] = objectTypeIds.get("14", [None])[0]  # W outputting to grid
-                    self._data["homePower"] = objectTypeIds.get("36", [None])[0]  # home consumption
-                    self._data["batteryPercentage"] = objectTypeIds.get("46", [None])[0]  # battery %
-                    self._data["batteryPower"] = objectTypeIds.get("56", [None])[0]  # battery charge/discharge
+                    self._data["gridPower"] = objectTypeIds.get("14", [None])[0]
+                    self._data["homePower"] = objectTypeIds.get("36", [None])[0]
+                    self._data["batteryPercentage"] = objectTypeIds.get("46", [None])[0]
+                    self._data["batteryPower"] = objectTypeIds.get("56", [None])[0]
+                    self._data["solarPower"] = objectTypeIds.get("62", [None])[0]
                     self._data["objectTypeIds"] = objectTypeIds
                     self._data["dataAvailable"] = sensor_val.get("dataAvailable", False)
                     self._data["time"] = sensor_val.get("time", [None])[0]
-                    grid_power = self._data["gridPower"]
-                    if grid_power is not None:
-                        if grid_power > 0:
-                            self._integrate_energy("grid_import", grid_power)
-                        elif grid_power < 0:
-                            self._integrate_energy("grid_export", abs(grid_power))
-                        self._integrate_energy("grid_energy", grid_power)
-                    battery_power = self._data["batteryPower"]
-                    if battery_power is not None:
-                        if battery_power > 0:
-                            self._integrate_energy("battery_charge", battery_power)
-                        elif battery_power < 0:
-                            self._integrate_energy("battery_discharge", abs(battery_power))
-                    if self._data.get("solarPower") is not None:
-                        self._integrate_energy("solar_energy", self._data["solarPower"])
+                    if self._last_update is not None:
+                        grid_power = self._data["gridPower"]
+                        if grid_power is not None:
+                            if grid_power > 0:
+                                self._integrate_energy("grid_export", grid_power, now)
+                            elif grid_power < 0:
+                                self._integrate_energy("grid_import", abs(grid_power), now)
+                        battery_power = self._data["batteryPower"]
+                        if battery_power is not None:
+                            if battery_power > 0:
+                                self._integrate_energy("battery_charge", battery_power, now)
+                            elif battery_power < 0:
+                                self._integrate_energy("battery_discharge", abs(battery_power), now)
+                        if self._data.get("solarPower") is not None:
+                            self._integrate_energy("solar_energy", self._data["solarPower"], now)
+                        if self._data.get("homePower") is not None:
+                            self._integrate_energy("home_energy", self._data["homePower"], now)
+                    self._last_update = now
                     self._data["solar_energy"] = self._energy_accumulators["solar_energy"]
                     self._data["home_energy"] = self._energy_accumulators["home_energy"]
                     self._data["grid_import"] = self._energy_accumulators["grid_import"]
@@ -256,6 +257,9 @@ class TigoData:
     def get_summary(self, property) -> any:
         """Retun summary reading."""
         return self._data.get(property)
+
+    def get_data(self) -> dict:
+        return self._data
 
 
 # see https://developers.home-assistant.io/docs/integration_fetching_data/
