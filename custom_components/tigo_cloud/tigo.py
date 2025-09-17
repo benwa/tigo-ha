@@ -142,7 +142,6 @@ class TigoData:
         """Get the data from the web api."""
         authHeader = await self._cookieCahe.getAuthHeader()
         cookieJar = self._cookieCahe.getCookieJar()
-        now = datetime.now()
         async with aiohttp.ClientSession(cookie_jar=cookieJar) as session:
             date = datetime.today().date()
             query = f"/api/v4/system/summary/aggenergy?system_id={self._systemId}&date={date}"
@@ -189,6 +188,7 @@ class TigoData:
                 if sensor_request.status == 200:
                     sensor_val = await sensor_request.json()
                     objectTypeIds = sensor_val.get("objectTypeIds", {})
+                    now = datetime.now()
                     self._data["gridPower"] = objectTypeIds.get("14", [None])[0]
                     self._data["homePower"] = objectTypeIds.get("36", [None])[0]
                     self._data["batteryPercentage"] = objectTypeIds.get("46", [None])[0]
@@ -258,9 +258,6 @@ class TigoData:
         """Retun summary reading."""
         return self._data.get(property)
 
-    def get_data(self) -> dict:
-        return self._data
-
 
 # see https://developers.home-assistant.io/docs/integration_fetching_data/
 class TigoCoordinator(DataUpdateCoordinator):
@@ -295,6 +292,3 @@ class TigoCoordinator(DataUpdateCoordinator):
         """Get the summary reading."""
         return self.tigo_data.get_summary(property)
 
-    def get_data(self) -> any:
-        """Get the whole reaging data."""
-        return self.tigo_data.get_data()
